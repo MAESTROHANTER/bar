@@ -101,7 +101,7 @@ udp_install(){
     udpport=$(rand 10000 60000)
     password=$(randpwd)
 	nohup ./speederv2 -s -l127.0.0.1:23333 -r127.0.0.1:$port -f2:4 --mode 0 --disable-obscure --disable-checksum --timeout 0 >speeder.log 2>&1 
-	nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:23333 --cipher-mode "none" --raw-mode easy-faketcp -a >udp2raw.log 2>&1 &
+	nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:23333 --cipher-mode "none" --raw-mode faketcp -a >udp2raw.log 2>&1 &
     echo -e "\033[37;41m输入你客户端电脑的默认网关，打开cmd，使用ipconfig命令查看\033[0m"
     read -p "比如192.168.1.1 ：" ugateway
 
@@ -135,7 +135,7 @@ cat > /etc/init.d/autoudp<<-EOF
 
 cd /usr/src/udp
 nohup ./speederv2 -s -l127.0.0.1:23333 -r127.0.0.1:$port -f2:4 --mode 0 --disable-obscure --disable-checksum --timeout 0 >speeder.log 2>&1 
-nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:23333 --cipher-mode "none" --raw-mode easy-faketcp -a >udp2raw.log 2>&1 &
+nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:23333 --cipher-mode "none" --raw-mode faketcp -a >udp2raw.log 2>&1 &
 EOF
 
 
