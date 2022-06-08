@@ -100,15 +100,15 @@ udp_install(){
     #启动udpspeeder和udp2raw
     udpport=$(rand 10000 60000)
     password=$(randpwd)
-	nohup ./speederv2 -s -l127.0.0.1:23333 -r127.0.0.1:$port -f2:4 --mode 0 --disable-obscure --disable-checksum --timeout 0 >speeder.log 2>&1 
-	nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:23333 --cipher-mode "none" --raw-mode faketcp -a >udp2raw.log 2>&1 &
+    nohup ./speederv2 -s -l127.0.0.1:23333 -r127.0.0.1:$port -f2:4 --mode 0 --disable-obscure --disable-checksum --timeout 0 >speeder.log 2>&1 &
+    nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:23333  --raw-mode faketcp --cipher-mode "none" -a -k $password >udp2raw.log 2>&1 &
     echo -e "\033[37;41m输入你客户端电脑的默认网关，打开cmd，使用ipconfig命令查看\033[0m"
     read -p "比如192.168.1.1 ：" ugateway
 
 cat > /etc/wireguard/client/client.conf <<-EOF
 [Interface]
 PrivateKey = $c1
-PostUp = mshta vbscript:CreateObject("WScript.Shell").Run("cmd /c route add $serverip mask 255.255.255.255 $ugateway METRIC 20 & start /b c:/udp/speederv2.exe -c -l127.0.0.1:2090 -r127.0.0.1:2091 -f2:4 --mode 0 --disable-obscure --disable-checksum --timeout 0 & start /b c:/udp/udp2raw.exe -c -r$serverip:$udpport -l127.0.0.1:2091 --cipher-mode "none" --raw-mode easy-faketcp -a",0)(window.close)
+PostUp = mshta vbscript:CreateObject("WScript.Shell").Run("cmd /c route add $serverip mask 255.255.255.255 $ugateway METRIC 20 & start /b c:/udp/speederv2.exe -c -l127.0.0.1:2090 -r127.0.0.1:2091 -f2:4 --mode 0 --timeout 0 & start /b c:/udp/udp2raw.exe -c -r$serverip:$udpport -l127.0.0.1:2091 --raw-mode faketcp -k $password",0)(window.close)
 PostDown = route delete $serverip && taskkill /im udp2raw.exe /f && taskkill /im speederv2.exe /f
 Address = 10.0.0.2/24 
 DNS = 8.8.8.8
@@ -120,6 +120,20 @@ Endpoint = 127.0.0.1:2090
 AllowedIPs = 0.0.0.0/0, ::0/0
 PersistentKeepalive = 25
 EOF
+
+cat > /etc/wireguard/client/client_noudp.conf <<-EOF
+[Interface]
+PrivateKey = $c1
+Address = 10.0.0.2/24 
+DNS = 8.8.8.8
+MTU = 1420
+[Peer]
+PublicKey = $s2
+Endpoint = $serverip:$port
+AllowedIPs = 0.0.0.0/0, ::0/0
+PersistentKeepalive = 25
+EOF
+
 
 #增加自启动脚本
 cat > /etc/init.d/autoudp<<-EOF
@@ -134,8 +148,8 @@ cat > /etc/init.d/autoudp<<-EOF
 ### END INIT INFO
 
 cd /usr/src/udp
-nohup ./speederv2 -s -l127.0.0.1:23333 -r127.0.0.1:$port -f2:4 --mode 0 --disable-obscure --disable-checksum --timeout 0 >speeder.log 2>&1 
-nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:23333 --cipher-mode "none" --raw-mode faketcp -a >udp2raw.log 2>&1 &
+nohup ./speederv2 -s -l127.0.0.1:23333 -r127.0.0.1:$port -f2:4 --mode 0 --disable-obscure --disable-checksum --timeout 0 >speeder.log 2>&1 &
+nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:23333  --raw-mode faketcp --cipher-mode "none" -a -k $password >udp2raw.log 2>&1 &
 EOF
 
 
